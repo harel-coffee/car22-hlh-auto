@@ -5,7 +5,9 @@ channels:
 dependencies:
   - bioconductor-apeglm
   - bioconductor-biobase
+  - bioconductor-edger
   - bioconductor-deseq2
+  - bioconductor-edaseq
   - bioconductor-enhancedvolcano
   - jupyter
   - libopenblas

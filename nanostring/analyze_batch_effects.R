@@ -4,6 +4,8 @@ options(warn=1)
 suppressPackageStartupMessages(library("argparse"))
 suppressPackageStartupMessages(library("Biobase"))
 suppressPackageStartupMessages(library("DESeq2"))
+suppressPackageStartupMessages(library("EDASeq"))
+suppressPackageStartupMessages(library("edgeR"))
 suppressPackageStartupMessages(library("RColorBrewer"))
 
 parser <- ArgumentParser()
