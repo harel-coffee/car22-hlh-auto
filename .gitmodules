@@ -1,0 +1,3 @@
+[submodule "pyhumboldt"]
+	path = pyhumboldt
+	url = git@github.com:ruppinlab/pyhumboldt.git
