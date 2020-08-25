@@ -1,0 +1,15 @@
+name: car22-tox-nano
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - bioconductor-apeglm
+  - bioconductor-biobase
+  - bioconductor-deseq2
+  - bioconductor-enhancedvolcano
+  - libopenblas
+  - r-argparse
+  - r-base=3.6
+  - r-essentials
+  - r-nanostringnorm
+  - r-statmod
