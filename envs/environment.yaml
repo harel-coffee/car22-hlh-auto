@@ -1,17 +1,26 @@
-name: 'car22-hlh'
+name: car22-hlh
 channels:
   - conda-forge
   - bioconda
-  - defaults
 dependencies:
-  - python>=3.7.0
-  - pandas
-  - numpy
-  - xlrd
+  - bioconductor-apeglm
+  - bioconductor-biobase
+  - bioconductor-deseq2
+  - bioconductor-enhancedvolcano
   - jupyter
+  - libopenblas
+  - matplotlib
+  - missingno
+  - numpy
+  - pandas
+  - pulp
+  - python>=3.7
+  - r-argparse
+  - r-base=3.6
+  - r-rcolorbrewer
+  - r-nanostringnorm
+  - r-statmod
   - scikit-learn
   - seaborn
-  - missingno
-  - matplotlib
   - snakemake
-  - pulp
+  - xlrd

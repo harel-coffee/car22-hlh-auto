@@ -1,24 +1,10 @@
-# NanoString Analysis
-
-## Installation
-
-```bash
-conda env create -f envs/car22-tox-nano.yml
-```
-
-Activate the environment:
-
-```bash
-conda activate car22-tox-nano
-```
+## NanoString Analysis
 
 Unpack NanoString raw data files:
 
 ```bash
 unzip data/De-Identified_CD22_Frozen_Whole_Cohort.zip -d data
 ```
-
-## Analysis
 
 Create ExpressionSets:
 
