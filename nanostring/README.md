@@ -2,10 +2,6 @@
 
 ## Installation
 
-Install and set up [Miniconda3](https://docs.conda.io/en/latest/miniconda.html)
-
-Install the conda environment:
-
 ```bash
 conda env create -f envs/car22-tox-nano.yml
 ```
