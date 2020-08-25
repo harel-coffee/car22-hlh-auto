@@ -11,7 +11,7 @@ Create ExpressionSets:
 ```bash
 ./create_eset.R --class-type hlh \
 --rcc-dir data/De-Identified_CD22_Frozen_Whole_Cohort \
---meta-file data/car22_tox_nano_meta.tsv
+--meta-file data/car22_tox_nano_meta.tsv \
 --out-file data/car22_tox_hlh_nano_counts.rds
 
 ./create_eset.R --class-type tcs \
