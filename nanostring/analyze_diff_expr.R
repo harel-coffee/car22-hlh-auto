@@ -5,8 +5,6 @@ suppressPackageStartupMessages(library("argparse"))
 suppressPackageStartupMessages(library("Biobase"))
 suppressPackageStartupMessages(library("DESeq2"))
 suppressPackageStartupMessages(library("EnhancedVolcano"))
-suppressPackageStartupMessages(library("limma"))
-suppressPackageStartupMessages(library("RUVSeq"))
 
 parser <- ArgumentParser()
 parser$add_argument(
@@ -32,10 +30,6 @@ dataset_name <- gsub(
 )
 
 if (!dir.exists("results")) dir.create("results")
-
-hk_gene_idxs <- which(
-    fData(eset)$Code.Class %in% c("Control", "Housekeeping", "housekeeping")
-)
 
 # DESeq2
 cat("Running DESeq2\n")
