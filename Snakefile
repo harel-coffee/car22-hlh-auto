@@ -16,16 +16,17 @@ MODEL_SUMMARY = join(RESULTS_DIR, 'predictive-models-summary.tsv')
 
 # Figures
 FIGS_PREFIX = join(FIGURES_DIR, 'fig')
-FIG1 = '%s1.pdf' % (FIGS_PREFIX)
-FIG2 = '%s2.pdf' % (FIGS_PREFIX)
-#FIG3 = '%s3.pdf' % (FIGS_PREFIX)
+FIG1 = '%s_main_1.pdf' % (FIGS_PREFIX)
+FIG2 = '%s_main_2.pdf' % (FIGS_PREFIX)
+SUPPL_FIG1 = '%s_suppl_3.pdf' % (FIGS_PREFIX)
 
 rule all:
     input:
         FIG1,
-        FIG2
+        FIG2,
+        SUPPL_FIG1
 
-rule relative_to_CRS:
+rule relative_to_CRS_main:
     input:
         CLINICAL_DATA
     output:
@@ -33,3 +34,11 @@ rule relative_to_CRS:
         FIG2
     script:
         "relative_to_CRS/main_figures.py"
+
+rule relative_to_CRS_suppl:
+    input:
+        CLINICAL_DATA
+    output:
+        SUPPL_FIG1
+    script:
+        "relative_to_CRS/supplementary_figures.py"
