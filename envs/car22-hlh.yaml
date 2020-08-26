@@ -3,14 +3,12 @@ channels:
   - conda-forge
   - bioconda
 dependencies:
-  - bioconductor-apeglm
   - bioconductor-biobase
   - bioconductor-edger
   - bioconductor-deseq2
   - bioconductor-edaseq
   - bioconductor-enhancedvolcano
   - jupyter
-  - libopenblas
   - matplotlib
   - missingno
   - numpy
