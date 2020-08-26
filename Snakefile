@@ -19,6 +19,7 @@ FIGS_PREFIX = join(FIGURES_DIR, 'fig')
 FIG1 = '%s_main_1.pdf' % (FIGS_PREFIX)
 FIG2 = '%s_main_2.pdf' % (FIGS_PREFIX)
 FIG3 = '%s_main_modelA_3.pdf' % (FIGS_PREFIX)
+FIG4 = '%s_main_modelB_4.pdf' % (FIGS_PREFIX)
 SUPPL_FIG1 = '%s_suppl_3.pdf' % (FIGS_PREFIX)
 
 rule all:
@@ -26,6 +27,7 @@ rule all:
         FIG1,
         FIG2,
         FIG3,
+        FIG4,
         SUPPL_FIG1
 
 rule relative_to_CRS_main:
@@ -52,3 +54,11 @@ rule modelA:
         FIG3
     script:
         "predictive_models/model_A.py"
+
+rule modelB:
+    input:
+        CLINICAL_DATA
+    output:
+        FIG4
+    script:
+        "predictive_models/model_B.py"
