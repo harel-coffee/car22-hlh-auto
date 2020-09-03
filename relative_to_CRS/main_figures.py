@@ -17,7 +17,6 @@ if __name__ == '__main__':
     # Set variables and path ---------------------------------------------------
     save_figs = True
     filename = snakemake.input[0]
-    #figs_path = "/Users/schischlikf2/datasets/CAR-T/figs_main"
 
     # New data version 1 -------------------------------------------------------
     data = pyh22.load_car22(filename, access_var="all", drop=True, version=1)
@@ -61,39 +60,7 @@ if __name__ == '__main__':
     days_melt = days_melt.replace(
         {'HLH': {0:'carHLH-', 1:'carHLH+'}})
 
-    # Plot A -------------------------------------------------------------------
-
-    # Select specific cytokines
-    days_melt_sel = days_melt.loc[days_melt['cytokines'].isin(['IFN-gamma',
-        'IL-6', 'TNF-alpha', 'IL-1B'])]
-    days_melt_sel['cytokine_levels'] = days_melt_sel['cytokine_levels'].astype(float)
-    days_melt_sel['log_cytokine_levels'] = np.log(days_melt_sel['cytokine_levels'])
-
-    # Plot patients over time
-    axes = pyhty.features_over_time(
-        rows=1,
-        columns=4,
-        features=days_melt_sel,
-        hue='HLH',
-        feature_column="cytokines",
-        y_axis='log_cytokine_levels',
-        x_axis='days_rel_to_CRS',
-        estimator=np.mean,
-        err_style='band',
-        ci=68,
-        units=None,
-        figsize_height=3,
-        figsize_width=13,
-        fig_title=None,
-        fig_title_pos=1.02,
-        xlabel="Day relative to CRS onset",
-        ylabel="log$_{10}$(Cytokine levels) (pg/mL)",
-        palette=["#3498db", "#e74c3c"],
-        draw_line=True)
-
-    plt.savefig(snakemake.output[0])
-
-    # Plot B -------------------------------------------------------------------
+    # Figure 2 -----------------------------------------------------------------
     # Main figure revised
     # Main figure (cytokine levels relative to CRS onset)
     # Re-order the cytokines
@@ -144,27 +111,36 @@ if __name__ == '__main__':
         palette=["#3498db", "#e74c3c"],
         draw_line=True)
 
+    plt.savefig(snakemake.output[0])
+
+    # Figure 2 - 4 cytokines ---------------------------------------------------
+
+    # Select specific cytokines
+    days_melt_sel = days_melt.loc[days_melt['cytokines'].isin(['IFN-gamma',
+        'IL-6', 'TNF-alpha', 'IL-1B'])]
+    days_melt_sel['cytokine_levels'] = days_melt_sel['cytokine_levels'].astype(float)
+    days_melt_sel['log_cytokine_levels'] = np.log(days_melt_sel['cytokine_levels'])
+
+    # Plot patients over time
+    axes = pyhty.features_over_time(
+        rows=1,
+        columns=4,
+        features=days_melt_sel,
+        hue='HLH',
+        feature_column="cytokines",
+        y_axis='log_cytokine_levels',
+        x_axis='days_rel_to_CRS',
+        estimator=np.mean,
+        err_style='band',
+        ci=68,
+        units=None,
+        figsize_height=3,
+        figsize_width=13,
+        fig_title=None,
+        fig_title_pos=1.02,
+        xlabel="Day relative to CRS onset",
+        ylabel="log$_{10}$(Cytokine levels) (pg/mL)",
+        palette=["#3498db", "#e74c3c"],
+        draw_line=True)
+
     plt.savefig(snakemake.output[1])
-
-    # TABLE A ------------------------------------------------------------------
-    # Calculate a separate table: with median, mean, IQR and SD with stats for
-    # each timepoint to determine difference, and the number evaluable at each
-    # timepoint (stratified by HLH and not-HLH)
-    # Are you able to do this table in BOTH: Actual value and log10 of cytokines
-
-    # Melt for plotting
-    #days_melt = pd.melt(
-    #    Xclin,
-    #    id_vars=['index', 'patient_id', 'date_CRS', 'max_grade_CRS', 'CRS',
-    #            'HLH', 'days_HLH', 'date', 'days_rel_to_CRS'],
-    #    var_name='cytokines',
-    #    value_name='cytokine_levels')
-
-    # Recode HLH column
-    #days_melt = days_melt.replace(
-    #    {'HLH': {0:'carHLH-', 1:'carHLH+'}})
-
-    # save dataframe
-    #days_melt.to_csv(
-    #os.path.join(figs_path,"rel_to_CRS_export.csv"),
-    #index=False)
