@@ -6,7 +6,6 @@ from os.path import join
 # Directories
 DATA_DIR = 'data'
 RESULTS_DIR = 'results'
-FIGURES_DIR = join(RESULTS_DIR, 'figs')
 
 # Data files
 CLINICAL_DATA = join(DATA_DIR, 'clinical_data_05-12-20_v1.xlsx')
@@ -18,12 +17,12 @@ REL_TO_CRS = join(RESULTS_DIR, 'relative_to_CRS.csv')
 REL_TO_CRS_STATS = join(RESULTS_DIR, 'relative_to_CRS_stats.csv')
 
 # Figures
-FIGS_PREFIX = join(FIGURES_DIR, 'fig')
-FIG2 = '%s_main_Figure2.pdf' % (FIGS_PREFIX)
-FIG2_4CYTO = '%s_main_Figure2_4cytokines.pdf' % (FIGS_PREFIX)
-FIG4C = '%s_main_modelA_Fig4C.pdf' % (FIGS_PREFIX)
-FIG4D = '%s_main_modelB_Fig4D.pdf' % (FIGS_PREFIX)
-SUPPL_FIG2 = '%s_suppl_Fig2.pdf' % (FIGS_PREFIX)
+FIGS_PREFIX = join(RESULTS_DIR, 'fig')
+FIG2 = join(RESULTS_DIR, 'Figure2_cyotkines_over_time_rel_CRS.pdf')
+FIG2_4CYTO = join(RESULTS_DIR, 'Figure2_4cytokines_rel_CRS.pdf')
+FIG4C = join(RESULTS_DIR, 'Figure4C_modelA.pdf')
+FIG4D = join(RESULTS_DIR, 'Figure4D_modelB.pdf')
+SUPPL_FIG2 = join(RESULTS_DIR, 'Suppl_Figure2_cytokines_over_time.pdf')
 
 #########
 # RULES #
