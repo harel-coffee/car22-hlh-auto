@@ -25,6 +25,9 @@ FIG4C = '%s_main_modelA_Fig4C.pdf' % (FIGS_PREFIX)
 FIG4D = '%s_main_modelB_Fig4D.pdf' % (FIGS_PREFIX)
 SUPPL_FIG2 = '%s_suppl_Fig2.pdf' % (FIGS_PREFIX)
 
+#########
+# RULES #
+#########
 rule all:
     input:
         FIG2,
