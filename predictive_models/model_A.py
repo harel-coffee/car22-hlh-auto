@@ -62,10 +62,9 @@ if __name__ == '__main__':
     # Set variables and path
     save_figs = True
     filename = snakemake.input[0]
-    #filename = '~/src/2020-CAR22-toxicities/data/REAL Full Cytokine (EVEN and odd post CAR)_De-identified CD22 Data for Bioinformatics_5-12-20_v1.xlsx'
 
     # Print available access variables
-    print(pyh22.load_car22.__doc__)
+    # print(pyh22.load_car22.__doc__)
 
     # Read in data -------------------------------------------------------------
     data = pyh22.load_car22(filename, access_var="all", drop=True, version=1)
@@ -87,6 +86,15 @@ if __name__ == '__main__':
 
     # Three variable model -----------------------------------------------------
     # For the three variable model, no log tranformation was performed!
+    # To generate Model A, following an initial screening by univariate methods,
+    # for those parameters for which p<0.05, multivariable logistic regression
+    # analysis using both backward and stepwise selection was used to identify a
+    # set of factors which could jointly impact development of carHLH. Because
+    # all but one of the carHLH occurrences were after day 7, prediction models
+    # concentrated on factors which were known at or before day 7, with
+    # exception for the maximum grade of CRS. Patients with missing values were
+    # excluded from analysis.
+    # Backward and stepwise selection was performed using SAS.
     model_features = ['TCS', 'max_grade_CRS', 'BM_ratio_T_NK']
     Xm = X.loc[:, model_features].dropna()
     ym = y[Xm.index]
@@ -94,20 +102,25 @@ if __name__ == '__main__':
     # Fit model using sklearn
     # set C value very high --> no regularization
     clf = LogisticRegression(C = 10e9).fit(Xm, ym)
-    clf.coef_
-    clf.intercept_
+    # clf.coef_
+    # clf.intercept_
     # Print metrics
-    pyhsu.get_metrics(ym, clf.predict(Xm))
+    # pyhsu.get_metrics(ym, clf.predict(Xm))
 
     # Fit model using sm.Logit
     model_features = ['TCS', 'max_grade_CRS', 'BM_ratio_T_NK']
     Xm = X.loc[:, model_features].dropna()
     ym = y[Xm.index]
-    # add intercept
+
+    # Add intercept
     Xm['intercept'] = 1
     logit = sm.Logit(ym, Xm[model_features + ['intercept']])
     results = logit.fit()
-    print(results.summary())
+
+    # Write results to file
+    f = open(snakemake.output[0], 'w')
+    f.write(str(results.summary()))
+    f.close()
 
     # Get metrics
     auc = roc_auc_score(
@@ -131,7 +144,8 @@ if __name__ == '__main__':
         ym,
         scoring='roc_auc',
         cv=cv)
-    print(crossval_scores, crossval_scores.mean())
+
+    # print(crossval_scores, crossval_scores.mean())
 
     # Collect data for ROC curve
     roc_data = pd.DataFrame()
@@ -139,12 +153,13 @@ if __name__ == '__main__':
     specificity = []
     target_var = 'HLH'
 
-    # set cross validation
+    # Initiate cross validation
     cv = StratifiedKFold(
         n_splits=4,
         shuffle=True,
         random_state=0)
 
+    # For each fold...
     for i, (train_index, test_index) in enumerate(cv.split(Xm, ym)):
 
         Xm_train = Xm.reset_index().loc[train_index].drop(columns='patient_id')
@@ -157,8 +172,8 @@ if __name__ == '__main__':
         cm = metrics.confusion_matrix(ym_test[target_var], clf.predict(Xm_test))
         sensitivity.append(cm[1,1]/(cm[1,1] + cm[1,0]))
         specificity.append(cm[0,0]/(cm[0,0] + cm[0,1]))
-        print(sensitivity)
-        print(specificity)
+        print('Sensitivity:', sensitivity)
+        print('Specificity:', specificity)
 
         roc_data = roc_data.append(
             pyhsu._prepare_roc_curve(
@@ -166,11 +181,13 @@ if __name__ == '__main__':
                 annotation='ROC fold {}'.format(i),
                 drop_intermediate=False))
 
-    # get mean sensitivity & specificity
-    np.mean(sensitivity)
-    np.std(sensitivity)
-    np.mean(specificity)
-    np.std(specificity)
+    # Get mean sensitivity & specificity
+    print('Mean sensitivity:', np.mean(sensitivity))
+    print('Std sensitivity:', np.std(sensitivity))
+    print('Mean specificity:', np.mean(specificity))
+    print('Std specificity', np.std(specificity))
 
+    # Print ROC curve
+    print('AUC for each fold:')
     pyhsu.ROC_curve(roc_data, alpha=0.5, style='Legend', lw=2, mean_roc=True, sd=True)
-    plt.savefig(snakemake.output[0])
+    plt.savefig(snakemake.output[1])

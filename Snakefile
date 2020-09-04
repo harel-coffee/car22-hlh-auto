@@ -12,7 +12,8 @@ FIGURES_DIR = join(RESULTS_DIR, 'figs')
 CLINICAL_DATA = join(DATA_DIR, 'clinical_data_05-12-20_v1.xlsx')
 
 # Output files
-MODEL_SUMMARY = join(RESULTS_DIR, 'predictive-models-summary.tsv')
+MODEL_A_SUMMARY = join(RESULTS_DIR, 'predictive-modelA-summary.txt')
+MODEL_B_SUMMARY = join(RESULTS_DIR, 'predictive-modelB-summary.txt')
 REL_TO_CRS = join(RESULTS_DIR, 'relative_to_CRS.csv')
 REL_TO_CRS_STATS = join(RESULTS_DIR, 'relative_to_CRS_stats.csv')
 
@@ -71,6 +72,7 @@ rule modelA:
     input:
         CLINICAL_DATA
     output:
+        MODEL_A_SUMMARY,
         FIG4C
     script:
         "predictive_models/model_A.py"
@@ -79,6 +81,7 @@ rule modelB:
     input:
         CLINICAL_DATA
     output:
+        MODEL_B_SUMMARY,
         FIG4D
     script:
         "predictive_models/model_B.py"
