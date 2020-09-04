@@ -32,10 +32,21 @@ Analyze batch effects and differential expression and produce plots:
 ./analyze_diff_expr.R --eset-file data/car22_tox_tcs_nano_counts.rds
 ```
 
-Perform gene set enrichment analysis (GO, KEGG, REACTOME):
+Reproduce Figure 5B, 5C and 5D:
 ```bash
-# if directory enrichment_analysis does not exist, creat it
+./plot_fig5B-D.R \
+--vsd-file data/car22_tox_tcs_no_outliers_nano_deseq2_ruvg_vsd.rds \
+--dir-results ..results/ \
+--deseq2-res data/car22_tox_tcs_no_outliers_nano_deseq2_results.tsv \
+--meta_file data/car22_tox_nano_meta.tsv \
+--eset-file data/car22_tox_tcs_no_outliers_nano_counts.rds
+```
+
+Perform gene set enrichment analysis (GO, KEGG, REACTOME) (Figure 5E):
+```bash
+# if directory enrichment_analysis does not exist, create it
 $ mkdir ../results/enrichment_analysis
+
 # for TCS
 ./enrichment_analysis.R \
 --deseq2-res data/car22_tox_tcs_no_outliers_nano_deseq2_results.tsv \
