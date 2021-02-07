@@ -23,10 +23,10 @@ $ pip uninstall
 ###  Run analysis
 ```
 # The following command will reproduce:
-# Figure 2 (fig_main_Figure2.pdf)
-# Figure 4C (fig_main_modelA_Fig4C.pdf)
-# Figure 4D (fig_main_modelB_Fig4D.pdf)
-# Supplementary Figure 2 (fig_suppl_Fig2.pdf)
+# Figure 2 (Figure2_cytokines_over_time_rel_CRS.pdf)
+# Figure 4C (Figure4C_modelA.pdf)
+# Figure 4D (Figure4D_modelB.pdf)
+# Supplementary Figure 2 (Suppl_Figure2_cytokines_over_time.pdf)
 # Supplementary Table 3 (relative_to_CRS_stats.csv)
 # Summary of model A (predictive-modelA-summary.txt)
 # Summary of model B (predictive-modelB-summary.txt)
