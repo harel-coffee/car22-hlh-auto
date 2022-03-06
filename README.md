@@ -1,8 +1,8 @@
 # car22-hlh
 Code to reproduce analysis for 
 
-### Biomarkers Associated with Hemophagocytic Lymphohistiocytosis-Like Toxicities Provide Novel Insights into CD22 CAR T-Cell Inflammatory Responses
-Daniel A. Lichtenstein, Fiorella Schischlik, Lipei Shao, Seth M. Steinberg, Bonnie Yates, Hao-Wei Wang, Francesco Ceppi, Leandro C. Hermida, Yanyu Wang, Jon Inglefield, Shakuntala Rampertaap, Welles Robinson, Karen M. Chisholm, Constance Yuan, Maryalice Stetler-Stevenson, Amanda K. Ombrello, Sergio Rosenzweig, Jianjian Jin, Terry J. Fry, Steven L. Highfill, Ping Jin, Haneen Shalabi, Rebecca Gardner, Eytan Ruppin, David F. Stroncek, Nirali N. Shah (Under review, 2020)
+### Characterization of HLH-like manifestations as a CRS variant in patients receiving CD22 CAR T cells
+Daniel A. Lichtenstein, Fiorella Schischlik, Lipei Shao, Seth M. Steinberg, Bonnie Yates, Hao-Wei Wang, Yanyu Wang, Jon Inglefield, Alina Dulau-Florea, Francesco Ceppi, Leandro C. Hermida, Kate Stringaris, Kim Dunham, Philip Homan, Parthav Jailwala, Justin Mirazee, Welles Robinson, Karen M. Chisholm, Constance Yuan, Maryalice Stetler-Stevenson, Amanda K. Ombrello, Jianjian Jin, Terry J. Fry, Naomi Taylor, Steven L. Highfill, Ping Jin, Rebecca A. Gardner, Haneen Shalabi, Eytan Ruppin, David F. Stroncek, Nirali N. Shah. Blood (2021) 138 (24): 2469–2484. https://doi.org/10.1182/blood.2021011898
 
 ### Set up environment
 1. Install and set up [Miniconda3](https://docs.conda.io/en/latest/miniconda.html)
