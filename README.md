@@ -35,5 +35,18 @@ $ snakemake --cores 1
 
 # For nanostring analysis, go to nanostring directory and follow README instructions:
 $ cd nanostring
+
+# For changes related to revisons to to subdirectory /revisions
+# File structure
+# revisions/figures:
+main_figures.py # code for reproducing figure 3 of the final manuscripts
+
+# revisions/predictive_models:
+logreg_relative_to_CRS.py # code for reproducing the predictive models in figure 4 of the final manuscript
+
+# revisions/stats: # code used for reproducing stats/supplementary tables of the final manuscript
+day_after_infusion_heatmap.rmd
+day_after_infusion_stats.rmd
+relative_to_CRS_stats.rmd
 ```
 
