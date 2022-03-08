@@ -1,0 +1,159 @@
+---
+  title: "Cytokine heatmap for day after infusion"
+author: Fiorella Schischlik
+date: March 7, 2021
+output:
+  md_document:
+  variant: gfm
+---
+
+Load libraries.
+```{r}
+library(ggplot2)
+library(tidyverse)
+library(ComplexHeatmap)
+library(circlize)
+```
+
+Set directories.
+```{r}
+data_dir <- "~/src/2020-CAR22-toxicities/figures/figs_revision/"
+```
+
+Read in data.
+```{r}
+data <- read_csv(paste(data_dir, "day_after_infusion_data_export.csv", sep=""))
+data$cytokine_day <- paste(data$cytokines, data$days, sep="_day")
+data <- data[order(data$cytokines, data$days), ]
+data_reduced <- data[c("patient_id", "cytokine_day","log10_cytokine_levels")]
+formatrix <- spread(data_reduced, cytokine_day, log10_cytokine_levels)
+formatrix <- as.data.frame(formatrix)
+num <- formatrix[, -1]
+row.names(num) <- formatrix$patient_id 
+num <- num[, unique(data$cytokine_day)]
+num <- as.matrix(num)
+```
+
+Plot heatmap.
+```{r}
+anno <- data[c("patient_id", "HLH")]
+anno <- unique(anno)
+anno <- as.data.frame(anno)
+row.names(anno) <- anno$patient_id
+anno <- anno[order(anno$HLH), ]
+
+ha = rowAnnotation(
+  HLH = anno$HLH,
+  col = list(HLH = c("carHLH+" = "red", "carHLH-" = "blue"))
+)
+
+p <- Heatmap(
+  num,
+  cluster_rows = FALSE,
+  cluster_columns = FALSE,
+  left_annotation = ha,
+)
+
+pdf(file="~/src/2020-CAR22-toxicities/figures/figs_revision/heatmap_cytokines.pdf", width=50, height=8)
+draw(p)
+dev.off()
+
+```
+
+Only INF-gamma.
+```{r}
+
+data_reduced <- data[c("patient_id", "cytokine_day","log10_cytokine_levels")]
+ifn <- c("IFN-gamma_day0", "IFN-gamma_day1", "IFN-gamma_day3", "IFN-gamma_day4", "IFN-gamma_day5", "IFN-gamma_day6", "IFN-gamma_day7", "IFN-gamma_day8", "IFN-gamma_day9", "IFN-gamma_day10", "IFN-gamma_day11", "IFN-gamma_day12", "IFN-gamma_day13", "IFN-gamma_day14", "IFN-gamma_day15", "IFN-gamma_day16", "IFN-gamma_day17", "IFN-gamma_day18", "IFN-gamma_day19", "IFN-gamma_day20", "IFN-gamma_day21", "IFN-gamma_day28")
+data_inf <- data_reduced[data_reduced$cytokine_day %in% ifn, ]
+data_inf$log10_cytokine_levels <- scale(data_inf$log10_cytokine_levels)
+formatrix <- spread(data_inf, cytokine_day, log10_cytokine_levels)
+formatrix <- as.data.frame(formatrix)
+num <- formatrix[, -1]
+num <- num[, unique(data_inf$cytokine_day)]
+row.names(num) <- formatrix$patient_id 
+
+anno <- data[c("patient_id", "HLH")]
+anno <- unique(anno)
+anno <- as.data.frame(anno)
+row.names(anno) <- anno$patient_id
+anno <- anno[order(anno$HLH), ]
+
+ha = rowAnnotation(
+  HLH = anno$HLH,
+  col = list(HLH = c("carHLH+" = "red", "carHLH-" = "blue"))
+)
+
+j <- Heatmap(
+  num,
+  cluster_rows = FALSE,
+  cluster_columns = FALSE,
+  left_annotation = ha,
+  rect_gp = gpar(col = "white", lwd = 1)
+)
+
+pdf(file="~/src/2020-CAR22-toxicities/figures/figs_revision/heatmap_cytokines_IFN-g.pdf", width=6, height=15)
+draw(j)
+dev.off()
+
+```
+
+Scale all.
+```{r}
+data_reduced <- data[c("patient_id", "cytokines", "cytokine_day","log10_cytokine_levels")]
+data_reduced <- as.data.frame(data_reduced)
+data_reduced$zscores <- NA
+
+# scale within cytokines
+cytokines <- unique(data_reduced$cytokines)
+for (cytokine in cytokines){
+  print(cytokine)
+  scaled_values <- scale(data_reduced[data_reduced$cytokines==cytokine, ]$log10_cytokine_levels)
+  data_reduced[data_reduced$cytokines==cytokine, ]$zscores <- as.numeric(scaled_values[,1])
+}
+
+data_reduced <- data_reduced[c("patient_id", "cytokine_day", "zscores")]
+
+formatrix <- spread(data_reduced, cytokine_day, zscores)
+formatrix <- as.data.frame(formatrix)
+num <- formatrix[, -1]
+num <- num[, unique(data_reduced$cytokine_day)]
+row.names(num) <- formatrix$patient_id 
+
+anno <- data[c("patient_id", "HLH")]
+anno <- unique(anno)
+anno <- as.data.frame(anno)
+row.names(anno) <- anno$patient_id
+anno <- anno[order(anno$HLH), ]
+
+ha = rowAnnotation(
+  HLH = anno$HLH,
+  col = list(HLH = c("carHLH+" = "red", "carHLH-" = "blue"))
+)
+
+col_fun = colorRamp2(c(-2, 0, 2), c("blue", "white", "red"))
+
+g <- Heatmap(
+  num,
+  cluster_rows = FALSE,
+  cluster_columns = FALSE,
+  left_annotation = ha,
+  col=col_fun
+)
+
+g <- Heatmap(
+  num,
+  cluster_rows = FALSE,
+  cluster_columns = FALSE,
+  left_annotation = ha
+)
+
+
+pdf(file="~/src/2020-CAR22-toxicities/figures/figs_revision/heatmap_cytokines_scaled.pdf", width=50, height=10)
+draw(g)
+dev.off()
+```
+
+
+
+

@@ -1,0 +1,402 @@
+---
+title: "Get stats for days relative to CRS"
+author: Fiorella Schischlik
+date: June, 30 2020
+output:
+  md_document:
+    variant: gfm
+---
+
+load libraries.
+```{r}
+library(tidyverse)
+```
+
+Directories.
+```{r}
+# dir_data <- "~/datasets/CAR-T/figs_main/"
+# for revision
+dir_data <- "~/src/2020-CAR22-toxicities/figures/figs_revision/"
+other_cytokines <- "~/src/2020-CAR22-toxicities/data/IL-18BP/"
+dir_crs <- "~/src/2020-CAR22-toxicities/data/"
+```
+
+Load and merge datasets together.
+```{r}
+
+# New ASBMT CRS grading
+asbmt_grading <- read_csv(paste(dir_crs, "ID Key_15C0029 CD22 CAR CRS Data_4-30-21_export.csv", sep=""))
+
+crs <- read_csv(paste(dir_data, "day_relative_to_CRS_export.csv", sep="")) %>%
+  dplyr::select(-X1)
+
+il18bp <- readxl::read_xlsx(paste(other_cytokines, "CD22_IL18bp_12-27-20_v1.xlsx", sep=""))
+
+
+il18bp <- il18bp %>% dplyr::rename(
+  patient_id = Subject_ID,
+  max_grade_CRS = `Max Grade CRS`,
+  date = `Day Post Infusion`,
+  days_rel_to_CRS = `Day Relative to CRS Onset`,
+  cytokine_levels = `IL-18BP pg/nl`) %>%
+  dplyr::mutate(
+    index=NA,
+    date_CRS=NA,
+    CRS=CRS,
+    cytokines="IL-18BP",
+    days_HLH=NA,
+    log10_cytokine_levels=log10(cytokine_levels),
+    `CRS grade` = ifelse(`max_grade_CRS` %in% c("1", "2"), "CRS 1-2", "CRS 3-4")) %>%  
+  dplyr::select(
+    colnames(crs)) %>%
+  dplyr::filter(days_rel_to_CRS %in% as.character(unique(crs$days_rel_to_CRS)))
+
+# Recode HLH variable
+il18bp$HLH <- dplyr::recode_factor(il18bp$HLH, `1`="carHLH+", `0`="carHLH-")
+
+cytokine_table <- rbind(il18bp, crs)
+
+```
+
+Mail from Nirali:
+ - Calculate a separate table: with median, mean, IQR and SD with stats 
+ for each timepoint to determine difference, and the number evaluable at 
+ each timepoint (stratified by HLH and not-HLH)
+- Are you able to do this table in BOTH: Actual value and log10 of cytokines
+```{r}
+
+# test
+timepoint <- 0
+cytokine <- "IL-18BP"
+
+# Significant timepoints
+timepoints <- sort(unique(cytokine_table$days_rel_to_CRS))
+cytokines <- unique(cytokine_table$cytokines)
+
+# initialize
+summary_table <- data.frame(
+  days_rel_to_CRS = integer(),
+  cytokine = character(),
+  num_patients = numeric(),
+  carHLH_pos = numeric(),
+  carHLH_neg = numeric(),
+  carHLH_pos_mean = numeric(),
+  carHLH_neg_mean = numeric(),
+  carHLH_pos_log10_mean = numeric(),
+  carHLH_neg_log10_mean = numeric(),
+  carHLH_pos_log10_median = numeric(),
+  carHLH_neg_log10_median = numeric(),
+  carHLH_pos_log10_IQR = numeric(),
+  carHLH_neg_log10_IQR = numeric(),
+  wilcox_pvalue = numeric()
+)
+
+summary_table$cytokine <- as.character(summary_table$cytokine)
+
+i <- 1
+
+for (timepoint in timepoints){
+  print(timepoint)
+  for (cytokine in cytokines){
+    print(cytokine)
+
+    df <- cytokine_table %>% dplyr::filter(days_rel_to_CRS==timepoint & cytokines==cytokine)
+    non_na <- df[complete.cases(df$cytokine_levels), ]
+    
+    if(dim(non_na)[1]!=0 & (! 0 %in% table(non_na$HLH))){
+      
+      carHLH_pos_cytokine_levels <- dplyr::filter(non_na, HLH=="carHLH+" )$cytokine_levels
+      carHLH_neg_cytokine_levels <- dplyr::filter(non_na, HLH=="carHLH-" )$cytokine_levels
+  
+      wilcox_res <- wilcox.test(
+        carHLH_pos_cytokine_levels,
+        carHLH_neg_cytokine_levels,
+        alternative = c("two.sided"))
+      
+      summary_table[i,]$days_rel_to_CRS <- timepoint
+      summary_table[i,]$cytokine <- cytokine
+      summary_table[i,]$num_patients <- sum(length(carHLH_neg_cytokine_levels) + length(carHLH_pos_cytokine_levels))
+      summary_table[i,]$carHLH_pos <- length(carHLH_pos_cytokine_levels)
+      summary_table[i,]$carHLH_neg <- length(carHLH_neg_cytokine_levels)
+      summary_table[i,]$carHLH_pos_mean <- mean(carHLH_pos_cytokine_levels)
+      summary_table[i,]$carHLH_neg_mean <- mean(carHLH_neg_cytokine_levels)
+      summary_table[i,]$carHLH_pos_log10_mean <- mean(log10(carHLH_pos_cytokine_levels))
+      summary_table[i,]$carHLH_neg_log10_mean <- mean(log10(carHLH_neg_cytokine_levels))
+      summary_table[i,]$carHLH_pos_log10_median <- median(log10(carHLH_pos_cytokine_levels))
+      summary_table[i,]$carHLH_neg_log10_median <- median(log10(carHLH_neg_cytokine_levels))
+      summary_table[i,]$carHLH_pos_log10_IQR <- IQR(log10(carHLH_pos_cytokine_levels))
+      summary_table[i,]$carHLH_neg_log10_IQR <- IQR(log10(carHLH_neg_cytokine_levels))
+      summary_table[i,]$wilcox_pvalue <- wilcox_res$p.value
+        
+    }else{
+      
+      summary_table[i,]$days_rel_to_CRS <- timepoint
+      summary_table[i,]$cytokine <- cytokine
+      summary_table[i,]$num_patients <- NA
+      summary_table[i,]$carHLH_pos <- NA
+      summary_table[i,]$carHLH_neg <- NA
+      summary_table[i,]$carHLH_pos_mean <- NA
+      summary_table[i,]$carHLH_neg_mean <- NA
+      summary_table[i,]$carHLH_pos_log10_mean <- NA
+      summary_table[i,]$carHLH_neg_log10_mean <- NA
+      summary_table[i,]$carHLH_pos_log10_median <- NA
+      summary_table[i,]$carHLH_neg_log10_median <- NA
+      summary_table[i,]$carHLH_pos_log10_IQR <- NA
+      summary_table[i,]$carHLH_neg_log10_IQR <- NA
+      summary_table[i,]$wilcox_pvalue <- NA
+    }
+    
+    i <- i + 1
+    
+    #print(df)
+  }
+}
+
+
+# Get fold change
+summary_table$log2fc <- log2(summary_table$carHLH_pos_mean/summary_table$carHLH_neg_mean)
+
+# Adjust using FDR 
+summary_table$padj_FDR <- NA 
+
+for (timepoint in timepoints){
+  df_timepoint <- summary_table %>% dplyr::filter(days_rel_to_CRS==timepoint)
+  summary_table[summary_table$days_rel_to_CRS==timepoint, ]$padj_FDR <- p.adjust(df_timepoint$wilcox_pvalue, method="BH")
+}
+
+write_excel_csv(
+  summary_table, 
+  file=paste(dir_data, "rel_to_CRS_stats_carHLH_with_pvalues.csv", sep=""))
+
+```
+
+Calculate a separate table: with median, mean, IQR and SD with stats 
+ for each timepoint to determine difference, and the number evaluable at 
+ each timepoint (stratified by CRS 1-2 and CRS 3-4)
+```{r}
+
+cytokine_table$log10_cytokine_levels <- log10(cytokine_table$cytokine_levels)
+  
+# Significant timepoints
+timepoints <- sort(unique(cytokine_table$days_rel_to_CRS))
+cytokines <- unique(cytokine_table$cytokines)
+
+# initialize
+summary_table <- data.frame(
+  days_rel_to_CRS = integer(),
+  cytokine = character(),
+  num_patients = numeric(),
+  CRS_low = numeric(),
+  CRS_high = numeric(),
+  CRS_low_mean = numeric(),
+  CRS_high_mean = numeric(),
+  CRS_low_log10_mean = numeric(),
+  CRS_high_log10_mean = numeric(),
+  CRS_low_log10_median = numeric(),
+  CRS_high_log10_median = numeric(),
+  CRS_low_log10_IQR = numeric(),
+  CRS_high_log10_IQR = numeric(),
+  wilcox_pvalue = numeric()
+)
+
+summary_table$cytokine <- as.character(summary_table$cytokine)
+
+i <- 1
+
+for (timepoint in timepoints){
+  print(timepoint)
+  for (cytokine in cytokines){
+    print(cytokine)
+
+    df <- cytokine_table %>% dplyr::filter(days_rel_to_CRS==timepoint & cytokines==cytokine)
+    non_na <- df[complete.cases(df$cytokine_levels), ]
+    
+    if(dim(non_na)[1]!=0 & (length(table(non_na$`CRS grade`))==2)){
+  
+      CRS_low_cytokine_levels <- dplyr::filter(non_na, `CRS grade`=="CRS 1-2" )$cytokine_levels
+      CRS_high_cytokine_levels <- dplyr::filter(non_na, `CRS grade`=="CRS 3-4" )$cytokine_levels
+      
+      wilcox_res <- wilcox.test(
+        CRS_low_cytokine_levels,
+        CRS_high_cytokine_levels,
+        alternative = c("two.sided"))
+      
+      summary_table[i,]$days_rel_to_CRS <- timepoint
+      summary_table[i,]$cytokine <- cytokine
+      summary_table[i,]$wilcox_pvalue <- wilcox_res$p.value
+      summary_table[i,]$num_patients <- sum(table(non_na$`CRS grade`)[1] + table(non_na$`CRS grade`)[2])
+      summary_table[i,]$CRS_low <- table(non_na$`CRS grade`)[1]
+      summary_table[i,]$CRS_high <- table(non_na$`CRS grade`)[2]
+      summary_table[i,]$CRS_low_mean <- mean(CRS_low_cytokine_levels)
+      summary_table[i,]$CRS_high_mean <- mean(CRS_high_cytokine_levels)
+      summary_table[i,]$CRS_low_log10_mean <- mean(log10(CRS_low_cytokine_levels))
+      summary_table[i,]$CRS_high_log10_mean <- mean(log10(CRS_high_cytokine_levels))
+      summary_table[i,]$CRS_low_log10_median <- median(log10(CRS_low_cytokine_levels))
+      summary_table[i,]$CRS_high_log10_median <- median(log10(CRS_high_cytokine_levels))
+      summary_table[i,]$CRS_low_log10_IQR <- IQR(log10(CRS_low_cytokine_levels))
+      summary_table[i,]$CRS_high_log10_IQR <- IQR(log10(CRS_high_cytokine_levels))
+        
+    }else{
+      
+      summary_table[i,]$days_rel_to_CRS <- timepoint
+      summary_table[i,]$cytokine <- cytokine
+      summary_table[i,]$wilcox_pvalue <- NA
+      summary_table[i,]$num_patients <- NA
+      summary_table[i,]$CRS_low <- NA
+      summary_table[i,]$CRS_high <- NA
+      summary_table[i,]$CRS_low_log10_mean <- NA
+      summary_table[i,]$CRS_high_log10_mean <- NA
+      summary_table[i,]$CRS_low_log10_median <- NA
+      summary_table[i,]$CRS_high_log10_median <- NA
+      summary_table[i,]$CRS_low_log10_IQR <- NA
+      summary_table[i,]$CRS_high_log10_IQR <- NA
+    }
+    
+    i <- i + 1
+    
+    #print(df)
+  }
+}
+
+
+# Get fold change
+summary_table$log2fc <- log2(summary_table$CRS_high_mean/summary_table$CRS_low_mean)
+
+# Adjust using FDR 
+summary_table$padj_FDR <- NA 
+
+for (timepoint in timepoints){
+  df_timepoint <- summary_table %>% dplyr::filter(days_rel_to_CRS==timepoint)
+  summary_table[summary_table$days_rel_to_CRS==timepoint, ]$padj_FDR <- p.adjust(df_timepoint$wilcox_pvalue, method="BH")
+}
+
+
+write_excel_csv(
+  summary_table, 
+  path=paste(dir_data, "rel_to_CRS_stats_CRS_grade_with_pvalues.csv", sep=""))
+
+```
+
+Merge patient with new CRS grading system (ASBMT).
+```{r}
+
+cytokine_table_merged <- merge(
+  cytokine_table, 
+  asbmt_grading, 
+  by.x = "patient_id",
+  by.y = "Randomized ID")
+
+cytokine_table_merged <- as_tibble(
+  cytokine_table_merged) %>%
+  dplyr::mutate(crs_grade_asbmt = ifelse(`Max Grade CRS_ASBMT` %in% c("1", "2"), 
+                                        "CRS 1-2", "CRS 3-4"))
+
+```
+
+Calculate a separate table: with median, mean, IQR and SD with stats 
+ for each timepoint to determine difference, and the number evaluable at 
+ each timepoint (stratified by CRS 1-2 and CRS 3-4) use CRS ASBMT grading
+```{r}
+
+cytokine_table <- cytokine_table_merged
+cytokine_table$log10_cytokine_levels <- log10(cytokine_table$cytokine_levels)
+  
+# Significant timepoints
+timepoints <- sort(unique(cytokine_table$days_rel_to_CRS))
+cytokines <- unique(cytokine_table$cytokines)
+
+# initialize
+summary_table <- data.frame(
+  days_rel_to_CRS = integer(),
+  cytokine = character(),
+  num_patients = numeric(),
+  CRS_low = numeric(),
+  CRS_high = numeric(),
+  CRS_low_mean = numeric(),
+  CRS_high_mean = numeric(),
+  CRS_low_log10_mean = numeric(),
+  CRS_high_log10_mean = numeric(),
+  CRS_low_log10_median = numeric(),
+  CRS_high_log10_median = numeric(),
+  CRS_low_log10_IQR = numeric(),
+  CRS_high_log10_IQR = numeric(),
+  wilcox_pvalue = numeric()
+)
+
+summary_table$cytokine <- as.character(summary_table$cytokine)
+
+i <- 1
+
+for (timepoint in timepoints){
+  print(timepoint)
+  for (cytokine in cytokines){
+    print(cytokine)
+
+    df <- cytokine_table %>% dplyr::filter(days_rel_to_CRS==timepoint & cytokines==cytokine)
+    non_na <- df[complete.cases(df$cytokine_levels), ]
+    
+    if(dim(non_na)[1]!=0 & (length(table(non_na$`crs_grade_asbmt`))==2)){
+  
+      CRS_low_cytokine_levels <- dplyr::filter(non_na, `crs_grade_asbmt`=="CRS 1-2" )$cytokine_levels
+      CRS_high_cytokine_levels <- dplyr::filter(non_na, `crs_grade_asbmt`=="CRS 3-4" )$cytokine_levels
+      
+      wilcox_res <- wilcox.test(
+        CRS_low_cytokine_levels,
+        CRS_high_cytokine_levels,
+        alternative = c("two.sided"))
+      
+      summary_table[i,]$days_rel_to_CRS <- timepoint
+      summary_table[i,]$cytokine <- cytokine
+      summary_table[i,]$wilcox_pvalue <- wilcox_res$p.value
+      summary_table[i,]$num_patients <- sum(table(non_na$`crs_grade_asbmt`)[1] + table(non_na$`crs_grade_asbmt`)[2])
+      summary_table[i,]$CRS_low <- table(non_na$`crs_grade_asbmt`)[1]
+      summary_table[i,]$CRS_high <- table(non_na$`crs_grade_asbmt`)[2]
+      summary_table[i,]$CRS_low_mean <- mean(CRS_low_cytokine_levels)
+      summary_table[i,]$CRS_high_mean <- mean(CRS_high_cytokine_levels)
+      summary_table[i,]$CRS_low_log10_mean <- mean(log10(CRS_low_cytokine_levels))
+      summary_table[i,]$CRS_high_log10_mean <- mean(log10(CRS_high_cytokine_levels))
+      summary_table[i,]$CRS_low_log10_median <- median(log10(CRS_low_cytokine_levels))
+      summary_table[i,]$CRS_high_log10_median <- median(log10(CRS_high_cytokine_levels))
+      summary_table[i,]$CRS_low_log10_IQR <- IQR(log10(CRS_low_cytokine_levels))
+      summary_table[i,]$CRS_high_log10_IQR <- IQR(log10(CRS_high_cytokine_levels))
+        
+    }else{
+      
+      summary_table[i,]$days_rel_to_CRS <- timepoint
+      summary_table[i,]$cytokine <- cytokine
+      summary_table[i,]$wilcox_pvalue <- NA
+      summary_table[i,]$num_patients <- NA
+      summary_table[i,]$CRS_low <- NA
+      summary_table[i,]$CRS_high <- NA
+      summary_table[i,]$CRS_low_log10_mean <- NA
+      summary_table[i,]$CRS_high_log10_mean <- NA
+      summary_table[i,]$CRS_low_log10_median <- NA
+      summary_table[i,]$CRS_high_log10_median <- NA
+      summary_table[i,]$CRS_low_log10_IQR <- NA
+      summary_table[i,]$CRS_high_log10_IQR <- NA
+    }
+    
+    i <- i + 1
+    
+    #print(df)
+  }
+}
+
+
+# Get fold change
+summary_table$log2fc <- log2(summary_table$CRS_high_mean/summary_table$CRS_low_mean)
+
+# Adjust using FDR 
+summary_table$padj_FDR <- NA 
+
+for (timepoint in timepoints){
+  df_timepoint <- summary_table %>% dplyr::filter(days_rel_to_CRS==timepoint)
+  summary_table[summary_table$days_rel_to_CRS==timepoint, ]$padj_FDR <- p.adjust(df_timepoint$wilcox_pvalue, method="BH")
+}
+
+
+write_excel_csv(
+  summary_table, 
+  path=paste(dir_data, "rel_to_CRS_stats_CRS_ASBMT_grade_with_pvalues.csv", sep=""))
+
+```
