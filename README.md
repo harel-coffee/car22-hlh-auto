@@ -35,8 +35,11 @@ $ snakemake --cores 1
 
 # For nanostring analysis, go to nanostring directory and follow README instructions:
 $ cd nanostring
+```
 
-# For changes related to revisons to to subdirectory /revisions
+###  Revisions
+```
+# For changes related to revisons go to subdirectory /revisions
 # File structure
 # revisions/figures:
 main_figures.py # code for reproducing figure 3 of the final manuscripts
